@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CrateTracker">
+<meta name="theme-color" content="#0f1428">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="color-scheme" content="dark">
+<title>CrateTracker · F1 Clash</title>
+<style>
+  :root{
+    /* page + surfaces, matched to the F1 Clash crate store screen */
+    --page1:#c9cdec; --page2:#aeb3de;
+    --navy:#171d33; --navy2:#0f1428; --navy3:#232a47; --border:#323b5e;
+    --red:#e2001a; --red-dark:#a80013;
+    --text:#f2f4fb; --muted:#9aa3c4;
+    --green:#22c98a; --green-dark:#149a68;
+    --gold:#f5b400; --gold-dark:#b87f00;
+    --std:#4a9d6a; --std-dark:#2f6b47;
+    --plat:#cfeafc; --plat-dark:#5aa9d6;
+    --leg:#0e1330; --leg-gold:#e8c04a;
+    --gp:#31c7ff; --gp-dark:#1a8fc4;
+    --skip:#6b7386;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{
+    background:var(--navy2);  /* fills safe-area gutters behind the page */
+    -webkit-text-size-adjust:100%;
+  }
+  body{
+    margin:0; color:var(--text);
+    background:linear-gradient(180deg, var(--page1), var(--page2)) fixed;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    max-width:520px; margin:0 auto;
+    /* clear the notch, home indicator and side rounding on modern phones */
+    padding:
+      calc(8px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right))
+      calc(16px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
+    touch-action:manipulation;      /* removes 300ms tap delay + double-tap zoom */
+    overscroll-behavior-y:contain;  /* no rubber-band bleed into the page behind */
+  }
+  button{touch-action:manipulation;}
+  .brand{
+    display:flex; align-items:center; justify-content:center; gap:11px; margin:2px 2px 3px;
+  }
+  .brand .logo{flex-shrink:0; width:44px; height:44px; filter:drop-shadow(0 3px 5px rgba(20,24,50,.35));}
+  .brand .brand-txt{line-height:1; text-align:center;}
+  h1{
+    font-size:21px; margin:0; letter-spacing:.5px; font-weight:900;
+    color:var(--navy2); text-transform:uppercase; font-style:italic;
+    display:flex; align-items:baseline; justify-content:center; gap:7px;
+  }
+  h1 .accent{
+    color:var(--red); -webkit-text-stroke:0;
+  }
+  h1 .stripes{
+    display:inline-block; width:16px; height:15px; margin-left:-2px;
+    background:repeating-linear-gradient(115deg, var(--navy2) 0 3px, transparent 3px 6px);
+  }
+  .sub{color:#4c517a; font-size:11px; margin:2px 2px 10px; font-weight:700; letter-spacing:.2px; text-align:center;}
+
+  .card{
+    background:var(--navy); border:1px solid var(--border); border-radius:13px;
+    padding:0 0 13px; margin-bottom:12px; overflow:hidden;
+    box-shadow:0 4px 12px rgba(20,24,50,.22);
+  }
+  .card h2{
+    font-size:12.5px; text-transform:uppercase; letter-spacing:.5px; font-weight:800;
+    color:var(--text); margin:0; padding:11px 15px; background:var(--navy2);
+    border-bottom:2px solid var(--red); display:flex; align-items:center; justify-content:space-between;
+  }
+  .card-body{padding:12px 15px 0;}
+
+  label{display:block; font-size:11.5px; color:var(--muted); margin-bottom:4px; font-weight:600;}
+  input[type=number]{
+    width:100%; padding:9px 11px; border-radius:9px; border:1px solid var(--border);
+    background:var(--navy3); color:var(--text); font-size:16px; font-weight:700;
+  }
+  .row{display:flex; gap:8px; margin-bottom:8px;}
+  .row > *{flex:1;}
+  button{
+    border:none; border-radius:9px; padding:10px; font-size:13px; font-weight:800;
+    cursor:pointer; color:var(--text); text-transform:uppercase; letter-spacing:.4px;
+    font-family:inherit;
+  }
+  .btn-primary{
+    background:linear-gradient(180deg, var(--red), var(--red-dark));
+    box-shadow:0 4px 0 #7a000e, 0 6px 10px rgba(0,0,0,.35);
+    transition:transform .05s;
+  }
+  .btn-primary:active{transform:translateY(2px); box-shadow:0 2px 0 #7a000e;}
+  .btn-primary.mode-p{
+    background:linear-gradient(180deg,#eaf7ff,var(--plat-dark)); color:#0b1a24;
+    box-shadow:0 4px 0 #2f6d8f, 0 6px 10px rgba(0,0,0,.3);
+  }
+  .btn-primary.mode-l{
+    background:linear-gradient(180deg,#2a3363,var(--leg)); color:var(--leg-gold);
+    box-shadow:0 4px 0 #05070f, 0 6px 10px rgba(0,0,0,.35); border:1px solid var(--leg-gold);
+  }
+  .btn-ghost{
+    background:var(--navy3); border:1px solid var(--border); color:var(--muted);
+    box-shadow:0 3px 0 #0c0f1e;
+  }
+  .btn-ghost:active{transform:translateY(2px); box-shadow:none;}
+
+  .crate-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-top:2px;}
+  .crate-btn{
+    position:relative; background:var(--navy2); border:1px solid var(--border); border-radius:9px;
+    padding:9px 2px 6px; font-size:9px; font-weight:800; text-align:center;
+    text-transform:uppercase; letter-spacing:.1px; color:var(--muted);
+    transition:transform .06s, background .1s;
+  }
+  .crate-btn:active{transform:scale(.94); background:var(--navy3);}
+
+  .baseline-type-row{display:flex; gap:8px; margin-bottom:10px;}
+  .type-toggle{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    background:var(--navy3); border:1px solid var(--border); border-radius:10px;
+    padding:9px 6px; font-size:11.5px; font-weight:700; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.3px;
+    transition:transform .06s;
+  }
+  .type-toggle:active{transform:scale(.96);}
+  .type-toggle.active[data-t="p"]{background:rgba(90,169,214,.18); border-color:var(--plat); color:var(--plat);}
+  .type-toggle.active[data-t="l"]{background:rgba(232,192,74,.14); border-color:var(--leg-gold); color:var(--leg-gold);}
+
+  /* crate icon "boxes" — stylised, not game artwork, colour-matched to tier */
+  .icon{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:7px; font-size:10px; font-weight:900;
+    flex-shrink:0; position:relative; box-shadow:inset 0 -3px 0 rgba(0,0,0,.25), 0 2px 3px rgba(0,0,0,.3);
+  }
+  .icon-lg{width:48px; height:48px; border-radius:13px; font-size:15px;}
+  .icon-s{background:linear-gradient(155deg,#6fc98f,var(--std-dark)); color:#eafff2;}
+  .icon-g{background:linear-gradient(155deg,#ffe07a,var(--gold-dark)); color:#3a2400;}
+  .icon-p{background:linear-gradient(155deg,#ffffff,var(--plat-dark)); color:#0b1a24;}
+  .icon-p::after{content:"◆"; position:absolute; font-size:.55em; opacity:.5; bottom:1px; right:2px;}
+  .icon-l{background:linear-gradient(155deg,#3b4478,var(--leg)); color:var(--leg-gold); border:1px solid var(--leg-gold);}
+  .icon-l::after{content:"♛"; position:absolute; font-size:.6em; opacity:.55; bottom:0px; right:2px;}
+  .icon-gp{background:linear-gradient(155deg,#7fe3ff,var(--gp-dark)); color:#022634;}
+  .icon-f{background:linear-gradient(155deg,#8a92a6,var(--skip)); color:#e7e9ef;}
+  .icon-unknown{background:var(--navy3); border:1px dashed var(--border); color:var(--muted); box-shadow:none;}
+
+  .crate-btn .icon{margin:0 auto 5px; width:32px; height:32px; border-radius:9px; font-size:12px;}
+  .crate-btn[data-c="s"]{color:var(--std);}
+  .crate-btn[data-c="g"]{color:var(--gold);}
+  .crate-btn[data-c="p"]{color:var(--plat);}
+  .crate-btn[data-c="l"]{color:var(--leg-gold);}
+  .crate-btn[data-c="gp"]{color:var(--gp);}
+  .crate-btn[data-c="f"]{color:var(--skip);}
+
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px;
+    font-size:12px; font-weight:800; background:var(--navy3); color:var(--gold);
+    border:1px solid var(--border);
+  }
+
+  .log-wrap{
+    height:110px; overflow-y:auto; margin-top:10px; font-size:13px;
+    background:var(--navy2); border-radius:9px; border:1px solid var(--border);
+  }
+  .log-row{display:flex; align-items:center; gap:9px; padding:8px 10px; border-bottom:1px solid var(--border);}
+  .log-row .meta{flex:1; display:flex; justify-content:space-between; color:var(--muted); font-size:12px; font-weight:600;}
+  .log-row:last-child{border-bottom:none;}
+
+  /* step dropdown */
+  /* custom themed step dropdown */
+  .step-dd{position:relative;}
+  .step-trigger{
+    width:100%; display:flex; align-items:center; gap:9px; padding:11px 12px;
+    border-radius:9px; border:2px solid var(--border); background:var(--navy3);
+    color:var(--text); font-size:14px; font-weight:800; font-family:inherit; cursor:pointer;
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none;
+  }
+  .step-trigger.to-p{border-color:var(--plat); background:linear-gradient(180deg,rgba(90,169,214,.14),var(--navy3));}
+  .step-trigger.to-l{border-color:var(--leg-gold); background:linear-gradient(180deg,rgba(232,192,74,.12),var(--navy3));}
+  .step-trigger .st-label{flex:1; text-align:left;}
+  .step-trigger.to-p .st-label{color:var(--plat);}
+  .step-trigger.to-l .st-label{color:var(--leg-gold);}
+  .step-trigger .st-chev{color:var(--muted); font-size:12px; transition:transform .18s;}
+  .step-dd.open .step-trigger .st-chev{transform:rotate(180deg);}
+
+  .step-panel{
+    margin-top:6px; overflow:hidden;
+    background:var(--navy2); border:1px solid var(--border); border-radius:11px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    max-height:0; opacity:0; pointer-events:none;
+    transition:max-height .22s ease, opacity .15s ease, margin-top .22s ease;
+  }
+  .step-dd.open .step-panel{max-height:640px; opacity:1; pointer-events:auto;}
+  .step-opt{
+    display:flex; align-items:center; gap:10px; padding:12px 12px; cursor:pointer;
+    border-left:4px solid transparent; border-bottom:1px solid var(--border);
+    font-size:14px; font-weight:800; color:var(--text);
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none;
+  }
+  .step-opt:last-child{border-bottom:none;}
+  .step-opt .so-arrow{color:var(--muted); font-size:15px; margin:0 3px;}
+  .step-opt .so-num{flex:1;}
+  .step-opt .so-check{width:16px; text-align:center; color:var(--green); font-weight:900; opacity:0;}
+  .step-opt.sel .so-check{opacity:1;}
+  .step-opt.to-p{border-left-color:var(--plat);}
+  .step-opt.to-l{border-left-color:var(--leg-gold);}
+  /* selected row highlight — always on, touch or mouse */
+  .step-opt.to-p.sel{background:rgba(90,169,214,.15);}
+  .step-opt.to-l.sel{background:rgba(232,192,74,.13);}
+  .step-opt.neutral{color:var(--muted); font-weight:700;}
+  .step-opt.neutral.sel{background:var(--navy3);}
+  /* press feedback on touch (doesn't latch like :hover) */
+  .step-opt.to-p:active{background:rgba(90,169,214,.22);}
+  .step-opt.to-l:active{background:rgba(232,192,74,.20);}
+  .step-opt.neutral:active{background:var(--navy3);}
+  /* hover only on real pointer devices, so it never sticks on phones */
+  @media (hover:hover) and (pointer:fine){
+    .step-opt.to-p:hover{background:rgba(90,169,214,.15);}
+    .step-opt.to-l:hover{background:rgba(232,192,74,.13);}
+    .step-opt.neutral:hover{background:var(--navy3);}
+  }
+  .step-opt .icon{width:30px; height:30px; border-radius:8px; font-size:12px;}
+
+  /* collapsible baseline summary bar */
+  .summary-bar{
+    display:flex; align-items:center; gap:10px; padding:9px 14px; cursor:pointer;
+    background:var(--navy2); border-bottom:2px solid var(--red);
+  }
+  .summary-bar .icon{width:26px; height:26px; border-radius:7px; font-size:11px;}
+  .summary-bar .sum-txt{flex:1; font-size:12.5px; font-weight:800; color:var(--text);}
+  .summary-bar .sum-txt small{display:block; font-size:10.5px; font-weight:600; color:var(--muted); text-transform:none; letter-spacing:0;}
+  .summary-bar .chev{color:var(--muted); font-size:13px; font-weight:900; transition:transform .15s;}
+  .card.open .summary-bar .chev{transform:rotate(180deg);}
+  .card.collapsed .collapse-body{display:none;}
+
+  .predict{
+    background:var(--navy2); border:1px solid var(--border); border-radius:10px;
+    padding:14px; font-size:13.5px; line-height:1.5;
+  }
+  .predict.hit{background:linear-gradient(155deg,#123122,#0d2419); border-color:var(--green);}
+  .predict-top{display:flex; gap:12px; align-items:flex-start; margin-bottom:10px;}
+  .predict-top .txt{flex:1;}
+  .predict-top .step-name{font-weight:900; margin-bottom:2px; text-transform:uppercase; letter-spacing:.3px; color:var(--text);}
+  .predict-top .tip{color:var(--muted); font-size:12.5px;}
+  .next-race{
+    display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px;
+    border-top:1px solid var(--border); font-size:12.5px; color:var(--muted); font-weight:600;
+  }
+  .next-race .icon{width:30px; height:30px; border-radius:8px; font-size:11px;}
+  .step-note{
+    margin-top:10px; padding:9px 11px; border-radius:8px; font-size:11.5px; line-height:1.4;
+    background:rgba(232,192,74,.1); border:1px solid rgba(232,192,74,.3);
+    color:var(--leg-gold); font-weight:600;
+  }
+  .next-race.close .icon{animation:pulse 1.4s infinite;}
+  .next-race.close.to-p .icon{--pulse:90,169,214;}
+  .next-race.close.to-l .icon{--pulse:232,192,74;}
+  .next-race.close.to-s .icon{--pulse:74,157,106;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--pulse,245,180,0),.55);}70%{box-shadow:0 0 0 9px rgba(var(--pulse,245,180,0),0);}100%{box-shadow:0 0 0 0 rgba(var(--pulse,245,180,0),0);}}
+
+  .tag{display:inline-block; font-size:11px; padding:3px 9px; border-radius:20px; background:var(--gold); color:#3a2400; font-weight:800;}
+  .empty{color:var(--muted); font-size:13px; text-align:center; padding:16px 0;}
+  .progress-panel{
+    background:var(--navy); border:1px solid var(--border); border-radius:12px;
+    padding:12px 14px; margin-top:8px; box-shadow:0 4px 12px rgba(20,24,50,.22);
+  }
+  .progress-panel .pp-head{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;
+  }
+  .progress-panel .pp-title{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--muted);}
+  .progress-panel .pp-count{font-size:13px; font-weight:900; color:var(--text);}
+  .progress-panel .pp-count b{color:var(--gold);}
+  .pbar{height:12px; border-radius:7px; background:var(--navy3); border:1px solid var(--border); overflow:hidden;}
+  .pbar-fill{height:100%; border-radius:6px 0 0 6px; transition:width .3s ease;
+    background:linear-gradient(90deg,#ffe07a,var(--gold));}
+  .pbar-fill.to-p{background:linear-gradient(90deg,#eaf7ff,var(--plat-dark));}
+  .pbar-fill.to-l{background:linear-gradient(90deg,#e8c04a,var(--gold-dark));}
+  .pbar-fill.close{background:linear-gradient(90deg,var(--green),var(--green-dark));}
+  .progress-panel .pp-sub{margin-top:7px; font-size:11px; color:var(--muted); font-weight:600; text-align:center;}
+  .progress-panel.idle{opacity:.55;}
+
+  .footer-note{
+    color:#4c517a; font-size:9.5px; text-align:center; margin-top:10px; line-height:1.45; font-weight:600;
+    padding:0 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Crate Tracker logo">
+    <defs>
+      <linearGradient id="lgBox" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2a3363"/><stop offset="1" stop-color="#0e1330"/>
+      </linearGradient>
+      <linearGradient id="lgLid" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f5b400"/><stop offset="1" stop-color="#b87f00"/>
+      </linearGradient>
+    </defs>
+    <!-- speed lines -->
+    <g stroke="#e2001a" stroke-width="3" stroke-linecap="round" opacity=".9">
+      <line x1="2" y1="26" x2="14" y2="26"/>
+      <line x1="1" y1="35" x2="11" y2="35"/>
+      <line x1="3" y1="44" x2="13" y2="44"/>
+    </g>
+    <!-- crate body -->
+    <path d="M20 24 L52 24 L52 54 A2 2 0 0 1 50 56 L22 56 A2 2 0 0 1 20 54 Z"
+          fill="url(#lgBox)" stroke="#e8c04a" stroke-width="2"/>
+    <!-- crate lid with checkered stripe -->
+    <path d="M18 16 L54 16 A2 2 0 0 1 56 18 L56 25 L16 25 L16 18 A2 2 0 0 1 18 16 Z" fill="url(#lgLid)"/>
+    <g fill="#0e1330">
+      <rect x="20" y="18" width="4" height="3.5"/><rect x="28" y="18" width="4" height="3.5"/>
+      <rect x="36" y="18" width="4" height="3.5"/><rect x="44" y="18" width="4" height="3.5"/>
+      <rect x="24" y="21.5" width="4" height="3.5"/><rect x="32" y="21.5" width="4" height="3.5"/>
+      <rect x="40" y="21.5" width="4" height="3.5"/><rect x="48" y="21.5" width="4" height="1"/>
+    </g>
+    <!-- crown mark -->
+    <path d="M28 34 L31 40 L36 33 L41 40 L44 34 L43 47 L29 47 Z"
+          fill="#e8c04a" stroke="#8a6400" stroke-width="1" stroke-linejoin="round"/>
+  </svg>
+  <div class="brand-txt">
+    <h1>Crate<span class="accent">Tracker</span><span class="stripes"></span></h1>
+    <div class="sub">F1 CLASH · PREMIUM CRATE CYCLE PREDICTOR</div>
+  </div>
+</div>
+
+<div class="card collapsed" id="baselineCard">
+  <div class="summary-bar" id="baselineBar">
+    <span class="icon icon-unknown" id="sumIcon">?</span>
+    <div class="sum-txt" id="sumTxt">No baseline set<small>Tap to set the crate that started this cycle</small></div>
+    <span class="chev">▾</span>
+  </div>
+  <div class="card-body collapse-body">
+    <label>Which crate started this cycle?</label>
+    <div class="baseline-type-row">
+      <div class="type-toggle" data-t="p" id="typeP"><span class="icon icon-p">P</span> Platinum</div>
+      <div class="type-toggle" data-t="l" id="typeL"><span class="icon icon-l">L</span> Legendary</div>
+    </div>
+    <label>Win count when you got it</label>
+    <input type="number" id="startWin" placeholder="e.g. 1872">
+    <div style="margin-top:10px;">
+      <button class="btn-primary" id="setBaseline" style="width:100%">Set / Update Baseline</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Log a race result <span class="pill" id="raceCounter">🏁 0</span></h2>
+  <div class="card-body">
+    <div class="crate-grid">
+      <button class="crate-btn" data-c="s"><span class="icon icon-s">S</span>Standard</button>
+      <button class="crate-btn" data-c="g"><span class="icon icon-g">G</span>Golden</button>
+      <button class="crate-btn" data-c="p"><span class="icon icon-p">P</span>Platinum</button>
+      <button class="crate-btn" data-c="l"><span class="icon icon-l">L</span>Legendary</button>
+      <button class="crate-btn" data-c="gp"><span class="icon icon-gp">GP</span>GP/Event</button>
+      <button class="crate-btn" data-c="f"><span class="icon icon-f">F</span>Full/Skip</button>
+    </div>
+    <div class="log-wrap" id="logView"><div class="empty">No races logged yet</div></div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn-ghost" id="undoBtn" style="padding:11px;">↶ Undo</button>
+      <button class="btn-ghost" id="clearBtn" style="padding:11px;">Clear log</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Which step are you on?</h2>
+  <div class="card-body">
+    <div class="step-dd" id="stepDD">
+      <div class="step-trigger" id="stepTrigger">
+        <span class="st-label" id="stepTriggerLabel">— Not sure / auto-detect —</span>
+        <span class="st-chev">▾</span>
+      </div>
+      <div class="step-panel" id="stepPanel"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Prediction</h2>
+  <div class="card-body">
+    <div class="predict" id="predictBox">Set a baseline and start logging to see predictions.</div>
+    <button class="btn-primary" id="setBaselineBottom" style="width:100%; margin-top:12px;">Set / Update Baseline</button>
+  </div>
+</div>
+
+<div class="progress-panel idle" id="progressPanel">
+  <div class="pp-head">
+    <span class="pp-title">Step Progress</span>
+    <span class="pp-count" id="ppCount">—</span>
+  </div>
+  <div class="pbar"><div class="pbar-fill" id="ppFill" style="width:0%"></div></div>
+  <div class="pp-sub" id="ppSub">Set a baseline and pick a step to track progress.</div>
+</div>
+
+<div class="footer-note">
+  Ported from "Track &amp; find Premium Crates" by TR The Flash · simplified icons · works fully offline · add to Home Screen for one-tap access.
+</div>
+
+<script>
+const STEP_LABELS = ["Step 1","Step 2","Step 3","Step 4","Step 5","Step 6","Step 7","Step 8"];
+const STEP_TIPS = [
+  "Watch out. Platinum can come either 13 or 14. If early, count 14 as well before next step.",
+  "Check if gold comes in 2nd or 3rd. If Plat came early and everything now is one off, you can increase the baseline.",
+  "Every third cycle you get a bonus gold at 9 that will push following crates one later.",
+  "Hopefully straightforward. But be patient :)",
+  "Some reports of 29, but usually 32.",
+  "Keep going!",
+  "A bit quicker. Hope you get a good reward!",
+  "Let's go!"
+];
+// Race-count distance from start-of-step to the expected premium (ported from J31:J38, RC column only)
+const STEP_RC = [14,26,21,40,32,48,27,32];
+// Current -> predicted premium type per step, matched exactly to the in-game milestone screenshot
+// (not a strict alternation — steps 6 and 7 both start from Platinum in the real data)
+const STEP_TRANSITIONS = [
+  {from:'l', to:'p'}, // Step 1
+  {from:'p', to:'l'}, // Step 2
+  {from:'l', to:'p'}, // Step 3
+  {from:'p', to:'l'}, // Step 4
+  {from:'l', to:'p'}, // Step 5
+  {from:'p', to:'l'}, // Step 6
+  {from:'p', to:'l'}, // Step 7
+  {from:'l', to:'p'}  // Step 8
+];
+
+const STORE_KEY = 'f1clash_crate_tracker_v2';
+
+// Per-step GOLD (Golden crate) race positions, read directly from the source
+// spreadsheet's conditional formatting (all 8 steps confirmed against the sheet).
+// Each array lists the race numbers within that step that yield a Golden crate.
+// All other races up to STEP_RC are Standard; the race at STEP_RC[step] is the
+// premium (Platinum/Legendary per STEP_TRANSITIONS).
+const STEP_GOLDS = [
+  [5,8],                              // Step 1  (premium @14)
+  [2,7,10,14,19],                     // Step 2  (premium @26)
+  [5,8,12,16],                        // Step 3  (premium @21)
+  [3,7,12,14,19,24,27,32,35],         // Step 4  (premium @40)
+  [3,12,14,19,24,27],                 // Step 5  (premium @32)
+  [3,8,11,15,20,27,32,35,40,43],      // Step 6  (premium @48)
+  [3,7,12,14,19,24],                  // Step 7  (premium @27)
+  [8,13,16,20,25,27]                  // Step 8  (premium @32)
+];
+
+// Step-specific advisory notes from the sheet — surfaced to the user rather than
+// auto-applied, because they depend on live in-game timing / cycle-count the app
+// can't observe (which "third cycle" you're on, or whether Platinum lands 13 vs 14).
+const STEP_NOTES = {
+  1: 'Platinum can land on race 13 or 14. If it comes early at 13, still count race 14 as part of this step before advancing.',
+  3: 'Every third cycle gives a bonus Golden at race 9, which pushes all later crates one race later.'
+};
+
+// Returns the crate expected at a given race within a step: 'premium' | 'g' | 's' | null(unknown)
+function crateForRace(step, race){
+  if(!step || race < 1) return null;
+  const premiumRace = STEP_RC[step-1];
+  if(race === premiumRace) return 'premium';
+  if(race > premiumRace) return null;           // past this step's premium
+  const golds = STEP_GOLDS[step-1];
+  if(golds === null) return null;               // step not yet mapped
+  return golds.includes(race) ? 'g' : 's';
+}
+
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { startWin:null, entries:[], activeStep:0, baselineType:null };
+}
+function saveState(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+
+let state = loadState();
+
+// ---- core computation, ported from the spreadsheet formulas ----
+function computeSeries(){
+  let win = state.startWin;
+  let race = 0;
+  let prevCrate = null;
+  const rows = [];
+  for(const crate of state.entries){
+    win = win + 1;
+    const c = crate.toLowerCase();
+    if(c === 'gp'){
+      // race count does not increment for GP/event races
+    } else if(c === 'g' && prevCrate === 'g'){
+      // back-to-back Golden only counts once
+    } else {
+      race += 1;
+    }
+    rows.push({ win, race, crate: c });
+    prevCrate = c;
+  }
+  return rows;
+}
+
+function findStep(rows){
+  const platRow = rows.find(r => r.crate === 'p');
+  const legRow  = rows.find(r => r.crate === 'l');
+  const M18 = platRow ? platRow.race : null;
+  const M19 = legRow  ? legRow.race  : null;
+  const M21 = platRow ? platRow.win : (legRow ? legRow.win : null);
+  const row14 = rows.find(r => r.race === 14);
+  const M22 = row14 ? row14.win : null;
+
+  const step2Active = state.activeStep === 2;
+  const step8Active = state.activeStep === 8;
+
+  let message = null;
+
+  if(M18 !== null){
+    if(M18===12) message = "A bit off, but may have finished step 1?";
+    else if(M18===13) message = "Do one extra and go to step 2";
+    else if(M18===14) message = "Go to step 2";
+    else if([20,21,23,24,25].includes(M18)) message = "Go to step 4";
+    else if([29,30,31,32,33].includes(M18)) message = "Go to step 6";
+    else if([47,48,49,50,51].includes(M18)) message = "Go to step 7";
+  }
+  if(message===null && M19 !== null){
+    if((M19===26||M19===27) && step2Active) message = "Go to step 3";
+    else if(M19===26) message = "Go to step 3, but try step 8 if it doesn't fit";
+    else if((M19===26||M19===27) && step8Active) message = "Go to step 8";
+    else if(M19===27) message = "Go to step 8, but try step 3 if it doesn't fit";
+    else if([39,40,41,42].includes(M19)) message = "Go to step 5";
+    else if(M19===28) message = "Go to step 8";
+    else if([31,32,33].includes(M19)) message = "Go to step 1";
+  }
+
+  const hit = (M18!==null || M19!==null);
+  const updateTo = (M18===13) ? M22 : M21;
+  const triggerType = platRow ? 'p' : (legRow ? 'l' : null);
+
+  return { message, hit, updateTo, triggerType };
+}
+
+function parseStepNumber(message){
+  if(!message) return null;
+  const m = message.match(/step (\d+)/i);
+  return m ? parseInt(m[1],10) : null;
+}
+
+// ---- icon helper ----
+function iconHtml(type, big){
+  const map = { s:'S', g:'G', p:'P', l:'L', gp:'GP', f:'F' };
+  const cls = 'icon icon-' + type + (big ? ' icon-lg' : '');
+  return `<span class="${cls}">${map[type] || '?'}</span>`;
+}
+
+// ---- rendering ----
+function renderStepGrid(){
+  const panel = document.getElementById('stepPanel');
+  const trigger = document.getElementById('stepTrigger');
+  const label = document.getElementById('stepTriggerLabel');
+
+  // build options
+  let html = `<div class="step-opt neutral${state.activeStep===0?' sel':''}" data-step="0">
+      <span class="so-check">✓</span><span class="so-num">— Not sure / auto-detect —</span></div>`;
+  STEP_LABELS.forEach((lab, i) => {
+    const n = i+1;
+    const t = STEP_TRANSITIONS[i];
+    const arrow = `${iconHtml(t.from)}<span class="so-arrow">→</span>${iconHtml(t.to)}`;
+    html += `<div class="step-opt to-${t.to}${state.activeStep===n?' sel':''}" data-step="${n}">
+        <span class="so-check">✓</span>
+        <span class="so-num">${lab}</span>
+        ${arrow}
+      </div>`;
+  });
+  panel.innerHTML = html;
+
+  // wire option taps. Use click (fires after the full tap gesture) and stop
+  // propagation so the document outside-close handler doesn't also run.
+  panel.querySelectorAll('.step-opt').forEach(opt => {
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.activeStep = parseInt(opt.dataset.step, 10) || 0;
+      document.getElementById('stepDD').classList.remove('open');
+      saveState();
+      renderAll();
+    });
+  });
+
+  // trigger label + colour
+  trigger.classList.remove('to-p','to-l');
+  if(state.activeStep){
+    const t = STEP_TRANSITIONS[state.activeStep-1];
+    trigger.classList.add('to-' + t.to);
+    label.innerHTML = `${STEP_LABELS[state.activeStep-1]} · ${t.from==='p'?'Plat':'Leg'} → ${t.to==='p'?'Plat':'Leg'}`;
+  } else {
+    label.textContent = '— Not sure / auto-detect —';
+  }
+}
+
+function renderBaselineSummary(){
+  const card = document.getElementById('baselineCard');
+  const icon = document.getElementById('sumIcon');
+  const txt  = document.getElementById('sumTxt');
+  if(state.startWin === null){
+    icon.className = 'icon icon-unknown'; icon.textContent = '?';
+    txt.innerHTML = 'No baseline set<small>Tap to set the crate that started this cycle</small>';
+    card.classList.remove('collapsed'); card.classList.add('open'); // force open until set
+    return;
+  }
+  const t = state.baselineType;
+  const map = { p:'P', l:'L' };
+  const name = t==='p' ? 'Platinum' : (t==='l' ? 'Legendary' : 'Baseline');
+  icon.className = 'icon icon-' + (t || 'unknown');
+  icon.textContent = map[t] || '?';
+  const rows = computeSeries();
+  const race = rows.length ? rows[rows.length-1].race : 0;
+  txt.innerHTML = `Win ${state.startWin} · ${name}<small>Race ${race} logged${state.activeStep ? ' · Step ' + state.activeStep : ''} — tap to edit</small>`;
+}
+
+function toggleBaseline(){
+  const card = document.getElementById('baselineCard');
+  if(state.startWin === null) return; // stay open until baseline exists
+  card.classList.toggle('collapsed');
+  card.classList.toggle('open');
+}
+
+function renderBaselineTypeButtons(){
+  document.getElementById('typeP').classList.toggle('active', state.baselineType === 'p');
+  document.getElementById('typeL').classList.toggle('active', state.baselineType === 'l');
+  const btn = document.getElementById('setBaseline');
+  btn.classList.remove('mode-p','mode-l');
+  if(state.baselineType === 'p') btn.classList.add('mode-p');
+  if(state.baselineType === 'l') btn.classList.add('mode-l');
+}
+
+function renderLog(){
+  const rows = computeSeries();
+  const view = document.getElementById('logView');
+  document.getElementById('raceCounter').textContent = '🏁 ' + (rows.length ? rows[rows.length-1].race : 0);
+  if(!rows.length){
+    view.innerHTML = '<div class="empty">No races logged yet</div>';
+    return;
+  }
+  view.innerHTML = rows.slice().reverse().map(r =>
+    `<div class="log-row">${iconHtml(r.crate)}<div class="meta"><span>Win ${r.win}</span><span>Race ${r.race}</span></div></div>`
+  ).join('');
+  view.scrollTop = 0;
+}
+
+function renderPredict(){
+  const box = document.getElementById('predictBox');
+  if(state.startWin === null){
+    box.className = 'predict';
+    box.innerHTML = 'Set a baseline and start logging to see predictions.';
+    return;
+  }
+  const rows = computeSeries();
+  const { message, hit, updateTo, triggerType } = findStep(rows);
+  const currentRace = rows.length ? rows[rows.length-1].race : 0;
+  const step = state.activeStep;
+  const transition = step ? STEP_TRANSITIONS[step-1] : null;
+  const tip = step ? STEP_TIPS[step-1] : null;
+  const stepIcon = transition ? iconHtml(transition.to, true) : `<span class="icon icon-lg icon-unknown">?</span>`;
+
+  let html = `<div class="predict-top">${stepIcon}<div class="txt">`;
+  html += `<div class="step-name">${step ? STEP_LABELS[step-1] + ' — predicted ' + (transition.to==='p'?'Platinum':'Legendary') : 'No step selected'}</div>`;
+  html += `<div class="tip">${tip || (message || 'Pick a step above, or log a Platinum/Legendary to auto-detect one.')}</div>`;
+  html += `</div></div>`;
+
+  if(hit){
+    box.className = 'predict hit';
+    html += `<strong>🎉 Premium crate detected!</strong><br>`;
+    if(message) html += `${message}<br>`;
+    if(updateTo !== null && updateTo !== undefined){
+      html += `Update your baseline to <strong>${updateTo}</strong> and clear the log — or just tap Set/Update Baseline below, it'll do this for you.`;
+    }
+  } else {
+    box.className = 'predict';
+  }
+
+  if(step){
+    const target = STEP_RC[step-1];
+    const nextRaceNum = currentRace + 1;
+    const distance = target - currentRace;
+    const close = distance <= 2 && distance >= -2;
+    const premiumName = transition.to === 'p' ? 'Platinum' : 'Legendary';
+    const premiumType = transition.to; // 'p' or 'l'
+
+    // what crate is due at the very next race?
+    const nextCrate = crateForRace(step, nextRaceNum);
+    let nextIcon, nextLabel, toneType;
+    if(nextCrate === 'premium'){
+      nextIcon = iconHtml(premiumType); nextLabel = premiumName; toneType = premiumType;
+    } else if(nextCrate === 'g'){
+      nextIcon = iconHtml('g'); nextLabel = 'Golden'; toneType = 'l';
+    } else if(nextCrate === 's'){
+      nextIcon = iconHtml('s'); nextLabel = 'Standard'; toneType = 's';
+    } else {
+      nextIcon = iconHtml('unknown'); nextLabel = null; toneType = transition.to;
+    }
+
+    html += `<div class="next-race to-${toneType}${close ? ' close' : ''}">`;
+    html += nextIcon;
+    if(nextLabel){
+      const premiumHint = (nextCrate === 'premium')
+        ? ` 🎉`
+        : ` · ${premiumName} premium around race ${target}${distance>0?` (${distance} to go)`:''}`;
+      html += `<span>Next up: <strong>race ${nextRaceNum}</strong> → <strong>${nextLabel}</strong>${premiumHint}</span>`;
+    } else {
+      // step not yet mapped: fall back to premium-distance messaging
+      html += `<span>Next up: <strong>race ${nextRaceNum}</strong> · ${premiumName} premium around race ${target}${distance>0?` (${distance} to go)`:''}</span>`;
+    }
+    html += `</div>`;
+
+    // step-specific advisory note from the sheet (Steps 1 & 3)
+    if(STEP_NOTES[step]){
+      html += `<div class="step-note">⚠️ ${STEP_NOTES[step]}</div>`;
+    }
+  }
+
+  box.innerHTML = html;
+}
+
+function renderProgress(){
+  const panel = document.getElementById('progressPanel');
+  const countEl = document.getElementById('ppCount');
+  const fillEl = document.getElementById('ppFill');
+  const subEl = document.getElementById('ppSub');
+
+  const rows = state.startWin !== null ? computeSeries() : [];
+  const currentRace = rows.length ? rows[rows.length-1].race : 0;
+  const step = state.activeStep;
+
+  fillEl.classList.remove('to-p','to-l','close');
+
+  if(state.startWin === null || !step){
+    panel.classList.add('idle');
+    countEl.textContent = '—';
+    fillEl.style.width = '0%';
+    subEl.textContent = state.startWin === null
+      ? 'Set a baseline and pick a step to track progress.'
+      : 'Pick a step above to see how close the next premium is.';
+    return;
+  }
+
+  panel.classList.remove('idle');
+  const target = STEP_RC[step-1];
+  const t = STEP_TRANSITIONS[step-1];
+  const premiumName = t.to === 'p' ? 'Platinum' : 'Legendary';
+  const pct = Math.max(0, Math.min(100, Math.round((currentRace / target) * 100)));
+  const distance = target - currentRace;
+  const close = distance <= 2 && distance >= -2;
+
+  countEl.innerHTML = `Race <b>${currentRace}</b> / ${target}`;
+  fillEl.style.width = pct + '%';
+  fillEl.classList.add(close ? 'close' : ('to-' + t.to));
+
+  if(distance > 2){
+    subEl.textContent = `${distance} race${distance===1?'':'s'} to your predicted ${premiumName}`;
+  } else if(distance >= -2){
+    subEl.textContent = `🔥 ${premiumName} expected any race now — watch for it!`;
+  } else {
+    subEl.textContent = `Past the usual ${premiumName} window (${Math.abs(distance)} over) — re-check your step`;
+  }
+}
+
+function renderAll(){
+  renderStepGrid();
+  renderBaselineTypeButtons();
+  renderBaselineSummary();
+  renderLog();
+  renderPredict();
+  renderProgress();
+}
+
+// ---- events ----
+document.getElementById('baselineBar').onclick = toggleBaseline;
+document.getElementById('stepTrigger').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('stepDD').classList.toggle('open');
+});
+// close when tapping outside the dropdown
+document.addEventListener('click', (e) => {
+  const dd = document.getElementById('stepDD');
+  if(dd.classList.contains('open') && !dd.contains(e.target)){
+    dd.classList.remove('open');
+  }
+});
+document.getElementById('typeP').onclick = () => {
+  state.baselineType = (state.baselineType === 'p') ? null : 'p';
+  saveState(); renderAll();
+};
+document.getElementById('typeL').onclick = () => {
+  state.baselineType = (state.baselineType === 'l') ? null : 'l';
+  saveState(); renderAll();
+};
+
+function handleSetBaseline(){
+  const rows = computeSeries();
+  const result = state.startWin !== null ? findStep(rows) : { hit:false };
+
+  if(state.startWin !== null && result.hit){
+    // Automatic path: premium detected in the current log
+    const nextStep = parseStepNumber(result.message);
+    state.startWin = result.updateTo;
+    state.entries = [];
+    if(nextStep) state.activeStep = nextStep;
+    state.baselineType = result.triggerType;
+    document.getElementById('startWin').value = state.startWin;
+    saveState();
+    collapseBaseline();
+    renderAll();
+    return;
+  }
+
+  // Manual path
+  const v = parseInt(document.getElementById('startWin').value, 10);
+  if(!isNaN(v)){
+    state.startWin = v;
+    state.entries = [];
+    saveState();
+    collapseBaseline();
+    renderAll();
+  }
+}
+function collapseBaseline(){
+  const card = document.getElementById('baselineCard');
+  card.classList.add('collapsed'); card.classList.remove('open');
+}
+document.getElementById('setBaseline').onclick = handleSetBaseline;
+document.getElementById('setBaselineBottom').onclick = handleSetBaseline;
+
+document.querySelectorAll('.crate-btn').forEach(btn => {
+  btn.onclick = () => {
+    if(state.startWin === null){
+      alert('Set your baseline win count first.');
+      return;
+    }
+    state.entries.push(btn.dataset.c);
+    saveState();
+    renderAll();
+  };
+});
+
+document.getElementById('undoBtn').onclick = () => {
+  state.entries.pop();
+  saveState();
+  renderAll();
+};
+document.getElementById('clearBtn').onclick = () => {
+  if(confirm('Clear the whole race log? Baseline will be kept.')){
+    state.entries = [];
+    saveState();
+    renderAll();
+  }
+};
+
+// init
+if(state.startWin !== null){
+  document.getElementById('startWin').value = state.startWin;
+  collapseBaseline();
+} else {
+  document.getElementById('baselineCard').classList.remove('collapsed');
+  document.getElementById('baselineCard').classList.add('open');
+}
+renderAll();
+</script>
+<script>
+// Register the service worker for offline support (PWA).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .catch((err) => console.warn('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
