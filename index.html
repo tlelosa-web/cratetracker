@@ -379,7 +379,7 @@
     <input type="number" id="startWin" placeholder="e.g. 1872">
     <div style="margin-top:10px;">
       <button class="btn-primary" id="setBaseline" style="width:100%" disabled>Set / Update Baseline</button>
-      <div class="btn-hint" id="setBaselineHint">Log a Platinum or Legendary crate to enable this</div>
+      <div class="btn-hint" id="setBaselineHint">Choose Platinum or Legendary and enter the win count</div>
     </div>
   </div>
 </div>
@@ -719,12 +719,18 @@ function updateSetBaselineButtons(){
   }
   const typedWin = parseInt((document.getElementById('startWin')||{}).value, 10);
   const hasTypedWin = !isNaN(typedWin) && typedWin > 0;
-  const canSet = hit || hasTypedWin;
+  const canManualSet = hasTypedWin && (state.baselineType === 'p' || state.baselineType === 'l');
+  const canSet = hit || canManualSet;
   [['setBaseline','setBaselineHint'], ['setBaselineBottom','setBaselineBottomHint']].forEach(([btnId, hintId]) => {
     const btn = document.getElementById(btnId);
     const hint = document.getElementById(hintId);
     if(btn){ btn.disabled = !canSet; }
-    if(hint){ hint.classList.toggle('hidden', !!canSet); }
+    if(hint){
+      hint.textContent = state.startWin === null
+        ? 'Choose Platinum or Legendary and enter the win count'
+        : 'Log a Platinum or Legendary crate to enable this';
+      hint.classList.toggle('hidden', !!canSet);
+    }
   });
 }
 
@@ -947,7 +953,7 @@ function handleSetBaseline(){
 
   // Manual path
   const v = parseInt(document.getElementById('startWin').value, 10);
-  if(!isNaN(v)){
+  if(!isNaN(v) && (state.baselineType === 'p' || state.baselineType === 'l')){
     state.startWin = v;
     state.entries = [];
     saveState();

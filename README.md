@@ -44,11 +44,10 @@ the `icons/` folder) are served verbatim.
 ├── manifest.json         # PWA manifest — name, icons, standalone launch
 ├── service-worker.js     # Offline cache-first service worker
 ├── .nojekyll             # Tell GitHub Pages to skip Jekyll
-├── icons/
-│   ├── icon-180.png      # apple-touch-icon (iOS home screen)
-│   ├── icon-192.png      # Android
-│   ├── icon-512.png      # Splash / install
-│   └── icon-maskable-512.png  # Android adaptive/circular masking
+├── icon-180.png          # apple-touch-icon (iOS home screen)
+├── icon-192.png          # Android
+├── icon-512.png          # Splash / install
+├── icon-maskable-512.png # Android adaptive/circular masking
 └── README.md
 ```
 
