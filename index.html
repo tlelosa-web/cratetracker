@@ -584,7 +584,12 @@ function findStep(rows){
     else if([31,32,33].includes(M19)) message = "Go to step 1";
   }
 
-  const hit = (M18!==null || M19!==null);
+  // A premium only means "cycle complete → update baseline" when it lands at a
+  // plausible cycle-ending race — i.e. it matches a real step-transition rule and
+  // produced a `message`. A Platinum/Legendary at an early race (e.g. race 1) is
+  // the baseline crate itself or a mis-log, so it produces no message and must
+  // NOT enable a baseline update.
+  const hit = (message !== null);
   const updateTo = (M18===13) ? M22 : M21;
   const triggerType = platRow ? 'p' : (legRow ? 'l' : null);
 
