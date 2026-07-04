@@ -94,6 +94,43 @@
     transition:transform .05s;
   }
   .btn-primary:active{transform:translateY(2px); box-shadow:0 2px 0 #7a000e;}
+  .btn-primary:disabled{
+    background:var(--navy3); box-shadow:none; color:var(--muted);
+    cursor:not-allowed; opacity:.65;
+  }
+  .btn-primary:disabled:active{transform:none;}
+  .btn-hint{
+    font-size:10.5px; color:var(--muted); text-align:center; margin-top:6px;
+    font-weight:600; letter-spacing:.1px;
+  }
+  .btn-hint.hidden{display:none;}
+
+  .upcoming{margin-top:10px; padding-top:10px; border-top:1px solid var(--border);}
+  .upcoming .up-title{
+    font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+    color:var(--muted); margin-bottom:7px;
+  }
+  .upcoming .up-row{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none;}
+  .upcoming .up-row::-webkit-scrollbar{display:none;}
+  .up-chip{
+    flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:4px;
+    min-width:40px;
+  }
+  .up-chip .icon{width:32px; height:32px; border-radius:8px; font-size:12px;}
+  .up-chip .up-race{font-size:9.5px; font-weight:700; color:var(--muted);}
+  .up-chip.now .icon{box-shadow:0 0 0 2px var(--red), 0 0 0 4px rgba(226,0,26,.25);}
+  .up-chip.now .up-race{color:var(--text); font-weight:900;}
+  .up-chip.done{opacity:.35;}
+  .up-empty{font-size:11.5px; color:var(--muted); font-style:italic;}
+
+  .qr-wrap{
+    display:flex; justify-content:center; padding:6px 0 2px;
+  }
+  .qr-wrap svg{width:168px; height:168px; display:block;}
+  .share-url{
+    font-size:11px; color:var(--muted); text-align:center; margin-top:8px;
+    word-break:break-all; font-weight:600; letter-spacing:.1px;
+  }
   .btn-primary.mode-p{
     background:linear-gradient(180deg,#eaf7ff,var(--plat-dark)); color:#0b1a24;
     box-shadow:0 4px 0 #2f6d8f, 0 6px 10px rgba(0,0,0,.3);
@@ -341,7 +378,8 @@
     <label>Win count when you got it</label>
     <input type="number" id="startWin" placeholder="e.g. 1872">
     <div style="margin-top:10px;">
-      <button class="btn-primary" id="setBaseline" style="width:100%">Set / Update Baseline</button>
+      <button class="btn-primary" id="setBaseline" style="width:100%" disabled>Set / Update Baseline</button>
+      <div class="btn-hint" id="setBaselineHint">Log a Platinum or Legendary crate to enable this</div>
     </div>
   </div>
 </div>
@@ -382,7 +420,8 @@
   <h2>Prediction</h2>
   <div class="card-body">
     <div class="predict" id="predictBox">Set a baseline and start logging to see predictions.</div>
-    <button class="btn-primary" id="setBaselineBottom" style="width:100%; margin-top:12px;">Set / Update Baseline</button>
+    <button class="btn-primary" id="setBaselineBottom" style="width:100%; margin-top:12px;" disabled>Set / Update Baseline</button>
+    <div class="btn-hint" id="setBaselineBottomHint">Log a Platinum or Legendary crate to enable this</div>
   </div>
 </div>
 
@@ -393,6 +432,22 @@
   </div>
   <div class="pbar"><div class="pbar-fill" id="ppFill" style="width:0%"></div></div>
   <div class="pp-sub" id="ppSub">Set a baseline and pick a step to track progress.</div>
+</div>
+
+<div class="card collapsed" id="shareCard">
+  <div class="summary-bar" id="shareBar">
+    <span class="icon icon-unknown" id="shareIcon">📲</span>
+    <div class="sum-txt">Share with friends<small>Get this app on their phone in one scan</small></div>
+    <span class="chev">▾</span>
+  </div>
+  <div class="card-body collapse-body">
+    <div class="qr-wrap"><svg viewBox="0 0 246 246" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR code linking to the CrateTracker web app">
+<rect width="246" height="246" fill="#f4f6fb" rx="14"/>
+<g fill="#0b0f24"><rect x="24" y="24" width="42" height="6"/><rect x="78" y="24" width="24" height="6"/><rect x="132" y="24" width="36" height="6"/><rect x="180" y="24" width="42" height="6"/><rect x="24" y="30" width="6" height="6"/><rect x="60" y="30" width="6" height="6"/><rect x="78" y="30" width="24" height="6"/><rect x="114" y="30" width="12" height="6"/><rect x="132" y="30" width="6" height="6"/><rect x="144" y="30" width="12" height="6"/><rect x="180" y="30" width="6" height="6"/><rect x="216" y="30" width="6" height="6"/><rect x="24" y="36" width="6" height="6"/><rect x="36" y="36" width="18" height="6"/><rect x="60" y="36" width="6" height="6"/><rect x="72" y="36" width="24" height="6"/><rect x="108" y="36" width="6" height="6"/><rect x="120" y="36" width="6" height="6"/><rect x="138" y="36" width="30" height="6"/><rect x="180" y="36" width="6" height="6"/><rect x="192" y="36" width="18" height="6"/><rect x="216" y="36" width="6" height="6"/><rect x="24" y="42" width="6" height="6"/><rect x="36" y="42" width="18" height="6"/><rect x="60" y="42" width="6" height="6"/><rect x="72" y="42" width="12" height="6"/><rect x="96" y="42" width="6" height="6"/><rect x="132" y="42" width="6" height="6"/><rect x="150" y="42" width="6" height="6"/><rect x="162" y="42" width="12" height="6"/><rect x="180" y="42" width="6" height="6"/><rect x="192" y="42" width="18" height="6"/><rect x="216" y="42" width="6" height="6"/><rect x="24" y="48" width="6" height="6"/><rect x="36" y="48" width="18" height="6"/><rect x="60" y="48" width="6" height="6"/><rect x="72" y="48" width="6" height="6"/><rect x="90" y="48" width="42" height="6"/><rect x="144" y="48" width="18" height="6"/><rect x="180" y="48" width="6" height="6"/><rect x="192" y="48" width="18" height="6"/><rect x="216" y="48" width="6" height="6"/><rect x="24" y="54" width="6" height="6"/><rect x="60" y="54" width="6" height="6"/><rect x="72" y="54" width="42" height="6"/><rect x="132" y="54" width="12" height="6"/><rect x="162" y="54" width="12" height="6"/><rect x="180" y="54" width="6" height="6"/><rect x="216" y="54" width="6" height="6"/><rect x="24" y="60" width="42" height="6"/><rect x="72" y="60" width="6" height="6"/><rect x="84" y="60" width="6" height="6"/><rect x="96" y="60" width="6" height="6"/><rect x="108" y="60" width="6" height="6"/><rect x="120" y="60" width="6" height="6"/><rect x="132" y="60" width="6" height="6"/><rect x="144" y="60" width="6" height="6"/><rect x="156" y="60" width="6" height="6"/><rect x="168" y="60" width="6" height="6"/><rect x="180" y="60" width="42" height="6"/><rect x="72" y="66" width="6" height="6"/><rect x="84" y="66" width="6" height="6"/><rect x="108" y="66" width="6" height="6"/><rect x="120" y="66" width="6" height="6"/><rect x="138" y="66" width="30" height="6"/><rect x="24" y="72" width="6" height="6"/><rect x="36" y="72" width="30" height="6"/><rect x="84" y="72" width="30" height="6"/><rect x="126" y="72" width="6" height="6"/><rect x="138" y="72" width="6" height="6"/><rect x="156" y="72" width="18" height="6"/><rect x="180" y="72" width="30" height="6"/><rect x="36" y="78" width="6" height="6"/><rect x="48" y="78" width="12" height="6"/><rect x="66" y="78" width="12" height="6"/><rect x="84" y="78" width="6" height="6"/><rect x="96" y="78" width="12" height="6"/><rect x="120" y="78" width="12" height="6"/><rect x="138" y="78" width="12" height="6"/><rect x="162" y="78" width="6" height="6"/><rect x="180" y="78" width="12" height="6"/><rect x="198" y="78" width="24" height="6"/><rect x="24" y="84" width="18" height="6"/><rect x="48" y="84" width="6" height="6"/><rect x="60" y="84" width="6" height="6"/><rect x="84" y="84" width="6" height="6"/><rect x="102" y="84" width="30" height="6"/><rect x="156" y="84" width="6" height="6"/><rect x="168" y="84" width="6" height="6"/><rect x="192" y="84" width="6" height="6"/><rect x="204" y="84" width="12" height="6"/><rect x="24" y="90" width="6" height="6"/><rect x="48" y="90" width="12" height="6"/><rect x="84" y="90" width="6" height="6"/><rect x="96" y="90" width="12" height="6"/><rect x="114" y="90" width="6" height="6"/><rect x="126" y="90" width="24" height="6"/><rect x="174" y="90" width="12" height="6"/><rect x="192" y="90" width="24" height="6"/><rect x="30" y="96" width="6" height="6"/><rect x="42" y="96" width="12" height="6"/><rect x="60" y="96" width="6" height="6"/><rect x="78" y="96" width="12" height="6"/><rect x="96" y="96" width="6" height="6"/><rect x="108" y="96" width="6" height="6"/><rect x="120" y="96" width="6" height="6"/><rect x="138" y="96" width="42" height="6"/><rect x="186" y="96" width="18" height="6"/><rect x="36" y="102" width="6" height="6"/><rect x="48" y="102" width="6" height="6"/><rect x="72" y="102" width="12" height="6"/><rect x="102" y="102" width="6" height="6"/><rect x="114" y="102" width="6" height="6"/><rect x="132" y="102" width="6" height="6"/><rect x="150" y="102" width="6" height="6"/><rect x="168" y="102" width="6" height="6"/><rect x="180" y="102" width="6" height="6"/><rect x="198" y="102" width="24" height="6"/><rect x="30" y="108" width="42" height="6"/><rect x="84" y="108" width="18" height="6"/><rect x="108" y="108" width="18" height="6"/><rect x="144" y="108" width="12" height="6"/><rect x="174" y="108" width="12" height="6"/><rect x="204" y="108" width="12" height="6"/><rect x="24" y="114" width="6" height="6"/><rect x="48" y="114" width="6" height="6"/><rect x="72" y="114" width="12" height="6"/><rect x="90" y="114" width="6" height="6"/><rect x="114" y="114" width="6" height="6"/><rect x="132" y="114" width="6" height="6"/><rect x="150" y="114" width="18" height="6"/><rect x="174" y="114" width="18" height="6"/><rect x="198" y="114" width="12" height="6"/><rect x="30" y="120" width="24" height="6"/><rect x="60" y="120" width="6" height="6"/><rect x="78" y="120" width="6" height="6"/><rect x="90" y="120" width="6" height="6"/><rect x="108" y="120" width="12" height="6"/><rect x="126" y="120" width="6" height="6"/><rect x="162" y="120" width="18" height="6"/><rect x="186" y="120" width="12" height="6"/><rect x="216" y="120" width="6" height="6"/><rect x="36" y="126" width="12" height="6"/><rect x="54" y="126" width="6" height="6"/><rect x="78" y="126" width="24" height="6"/><rect x="120" y="126" width="6" height="6"/><rect x="132" y="126" width="12" height="6"/><rect x="150" y="126" width="6" height="6"/><rect x="162" y="126" width="6" height="6"/><rect x="174" y="126" width="18" height="6"/><rect x="198" y="126" width="12" height="6"/><rect x="216" y="126" width="6" height="6"/><rect x="24" y="132" width="12" height="6"/><rect x="60" y="132" width="6" height="6"/><rect x="90" y="132" width="30" height="6"/><rect x="132" y="132" width="6" height="6"/><rect x="150" y="132" width="6" height="6"/><rect x="180" y="132" width="18" height="6"/><rect x="204" y="132" width="12" height="6"/><rect x="30" y="138" width="6" height="6"/><rect x="54" y="138" width="6" height="6"/><rect x="66" y="138" width="6" height="6"/><rect x="78" y="138" width="6" height="6"/><rect x="90" y="138" width="12" height="6"/><rect x="120" y="138" width="6" height="6"/><rect x="138" y="138" width="6" height="6"/><rect x="150" y="138" width="12" height="6"/><rect x="174" y="138" width="36" height="6"/><rect x="216" y="138" width="6" height="6"/><rect x="36" y="144" width="6" height="6"/><rect x="48" y="144" width="18" height="6"/><rect x="72" y="144" width="18" height="6"/><rect x="102" y="144" width="6" height="6"/><rect x="132" y="144" width="6" height="6"/><rect x="150" y="144" width="6" height="6"/><rect x="168" y="144" width="12" height="6"/><rect x="186" y="144" width="18" height="6"/><rect x="24" y="150" width="6" height="6"/><rect x="36" y="150" width="18" height="6"/><rect x="66" y="150" width="12" height="6"/><rect x="84" y="150" width="6" height="6"/><rect x="108" y="150" width="24" height="6"/><rect x="144" y="150" width="6" height="6"/><rect x="156" y="150" width="18" height="6"/><rect x="180" y="150" width="6" height="6"/><rect x="198" y="150" width="12" height="6"/><rect x="216" y="150" width="6" height="6"/><rect x="24" y="156" width="6" height="6"/><rect x="60" y="156" width="12" height="6"/><rect x="78" y="156" width="12" height="6"/><rect x="102" y="156" width="12" height="6"/><rect x="132" y="156" width="12" height="6"/><rect x="150" y="156" width="12" height="6"/><rect x="168" y="156" width="12" height="6"/><rect x="186" y="156" width="30" height="6"/><rect x="24" y="162" width="6" height="6"/><rect x="36" y="162" width="6" height="6"/><rect x="48" y="162" width="6" height="6"/><rect x="66" y="162" width="6" height="6"/><rect x="90" y="162" width="12" height="6"/><rect x="120" y="162" width="6" height="6"/><rect x="132" y="162" width="42" height="6"/><rect x="186" y="162" width="6" height="6"/><rect x="198" y="162" width="24" height="6"/><rect x="24" y="168" width="6" height="6"/><rect x="42" y="168" width="12" height="6"/><rect x="60" y="168" width="12" height="6"/><rect x="96" y="168" width="6" height="6"/><rect x="108" y="168" width="6" height="6"/><rect x="126" y="168" width="6" height="6"/><rect x="138" y="168" width="6" height="6"/><rect x="156" y="168" width="6" height="6"/><rect x="168" y="168" width="36" height="6"/><rect x="216" y="168" width="6" height="6"/><rect x="72" y="174" width="6" height="6"/><rect x="90" y="174" width="6" height="6"/><rect x="108" y="174" width="6" height="6"/><rect x="126" y="174" width="6" height="6"/><rect x="138" y="174" width="12" height="6"/><rect x="156" y="174" width="6" height="6"/><rect x="168" y="174" width="6" height="6"/><rect x="192" y="174" width="6" height="6"/><rect x="204" y="174" width="18" height="6"/><rect x="24" y="180" width="42" height="6"/><rect x="78" y="180" width="6" height="6"/><rect x="90" y="180" width="6" height="6"/><rect x="108" y="180" width="12" height="6"/><rect x="126" y="180" width="6" height="6"/><rect x="144" y="180" width="6" height="6"/><rect x="156" y="180" width="18" height="6"/><rect x="180" y="180" width="6" height="6"/><rect x="192" y="180" width="6" height="6"/><rect x="204" y="180" width="12" height="6"/><rect x="24" y="186" width="6" height="6"/><rect x="60" y="186" width="6" height="6"/><rect x="72" y="186" width="6" height="6"/><rect x="90" y="186" width="12" height="6"/><rect x="126" y="186" width="12" height="6"/><rect x="144" y="186" width="6" height="6"/><rect x="162" y="186" width="12" height="6"/><rect x="192" y="186" width="30" height="6"/><rect x="24" y="192" width="6" height="6"/><rect x="36" y="192" width="18" height="6"/><rect x="60" y="192" width="6" height="6"/><rect x="72" y="192" width="6" height="6"/><rect x="84" y="192" width="6" height="6"/><rect x="96" y="192" width="6" height="6"/><rect x="114" y="192" width="12" height="6"/><rect x="144" y="192" width="18" height="6"/><rect x="168" y="192" width="36" height="6"/><rect x="24" y="198" width="6" height="6"/><rect x="36" y="198" width="18" height="6"/><rect x="60" y="198" width="6" height="6"/><rect x="72" y="198" width="12" height="6"/><rect x="102" y="198" width="18" height="6"/><rect x="132" y="198" width="6" height="6"/><rect x="150" y="198" width="6" height="6"/><rect x="168" y="198" width="12" height="6"/><rect x="192" y="198" width="18" height="6"/><rect x="216" y="198" width="6" height="6"/><rect x="24" y="204" width="6" height="6"/><rect x="36" y="204" width="18" height="6"/><rect x="60" y="204" width="6" height="6"/><rect x="72" y="204" width="12" height="6"/><rect x="90" y="204" width="18" height="6"/><rect x="114" y="204" width="12" height="6"/><rect x="144" y="204" width="6" height="6"/><rect x="156" y="204" width="12" height="6"/><rect x="180" y="204" width="12" height="6"/><rect x="204" y="204" width="6" height="6"/><rect x="24" y="210" width="6" height="6"/><rect x="60" y="210" width="6" height="6"/><rect x="90" y="210" width="18" height="6"/><rect x="114" y="210" width="6" height="6"/><rect x="150" y="210" width="18" height="6"/><rect x="174" y="210" width="6" height="6"/><rect x="192" y="210" width="18" height="6"/><rect x="24" y="216" width="42" height="6"/><rect x="72" y="216" width="12" height="6"/><rect x="90" y="216" width="6" height="6"/><rect x="102" y="216" width="18" height="6"/><rect x="126" y="216" width="6" height="6"/><rect x="156" y="216" width="24" height="6"/><rect x="186" y="216" width="6" height="6"/><rect x="198" y="216" width="6" height="6"/><rect x="210" y="216" width="6" height="6"/></g>
+</svg></div>
+    <div class="share-url" id="shareUrl">https://tlelosa-web.github.io/cratetracker/</div>
+    <button class="btn-ghost" id="copyLinkBtn" style="width:100%; margin-top:10px;">📋 Copy link</button>
+  </div>
 </div>
 
 <div class="footer-note">
@@ -620,6 +675,12 @@ function toggleBaseline(){
   card.classList.toggle('open');
 }
 
+function toggleShare(){
+  const card = document.getElementById('shareCard');
+  card.classList.toggle('collapsed');
+  card.classList.toggle('open');
+}
+
 function renderBaselineTypeButtons(){
   document.getElementById('typeP').classList.toggle('active', state.baselineType === 'p');
   document.getElementById('typeL').classList.toggle('active', state.baselineType === 'l');
@@ -657,6 +718,15 @@ function renderPredict(){
   const transition = step ? STEP_TRANSITIONS[step-1] : null;
   const tip = step ? STEP_TIPS[step-1] : null;
   const stepIcon = transition ? iconHtml(transition.to, true) : `<span class="icon icon-lg icon-unknown">?</span>`;
+
+  // Set/Update Baseline only makes sense once a Platinum or Legendary has
+  // actually been logged — gate both buttons on that.
+  [['setBaseline','setBaselineHint'], ['setBaselineBottom','setBaselineBottomHint']].forEach(([btnId, hintId]) => {
+    const btn = document.getElementById(btnId);
+    const hint = document.getElementById(hintId);
+    if(btn){ btn.disabled = !hit; }
+    if(hint){ hint.classList.toggle('hidden', !!hit); }
+  });
 
   let html = `<div class="predict-top">${stepIcon}<div class="txt">`;
   html += `<div class="step-name">${step ? STEP_LABELS[step-1] + ' — predicted ' + (transition.to==='p'?'Platinum':'Legendary') : 'No step selected'}</div>`;
@@ -707,6 +777,11 @@ function renderPredict(){
       html += `<span>Next up: <strong>race ${nextRaceNum}</strong> · ${premiumName} premium around race ${target}${distance>0?` (${distance} to go)`:''}</span>`;
     }
     html += `</div>`;
+
+    // Upcoming crates strip — direct continuation of "Next up", so it reads as
+    // one idea (this next race, and the ones right after it) rather than a
+    // separate section further down the card.
+    html += buildUpcomingHtml(step, nextRaceNum, target, transition);
 
     // step-specific advisory note from the sheet (Steps 1 & 3)
     if(STEP_NOTES[step]){
@@ -760,6 +835,36 @@ function renderProgress(){
   }
 }
 
+// Builds the 8-crate strip as an HTML string, appended directly under the
+// "Next up" line inside the prediction box. The FIRST chip is the same race
+// the "Next up" line names (nextRaceNum), so the strip reads as a continuation:
+// this next crate, then the seven after it. Updates every time renderPredict runs.
+function buildUpcomingHtml(step, nextRaceNum, target, transition){
+  const premiumName = transition.to === 'p' ? 'Platinum' : 'Legendary';
+  let chipsHtml = '';
+  let shown = 0;
+  for(let r = nextRaceNum; shown < 8; r++){
+    if(r > target) break; // stop at this step's premium — next step unknown from here
+    const c = crateForRace(step, r);
+    let crate, label;
+    if(c === 'premium'){ crate = transition.to; label = premiumName; }
+    else if(c === 'g'){ crate = 'g'; label = 'Golden'; }
+    else if(c === 's'){ crate = 's'; label = 'Standard'; }
+    else { crate = 'unknown'; label = 'Unknown'; }
+
+    const isNow = (r === nextRaceNum);
+    chipsHtml += `<div class="up-chip${isNow ? ' now' : ''}" title="Race ${r} — ${label}">
+        ${iconHtml(crate)}<span class="up-race">R${r}</span>
+      </div>`;
+    shown++;
+  }
+
+  if(!chipsHtml){
+    return `<div class="upcoming"><div class="up-title">Upcoming crates</div><div class="up-empty">Premium reached — set your new baseline to continue.</div></div>`;
+  }
+  return `<div class="upcoming"><div class="up-title">Upcoming crates</div><div class="up-row">${chipsHtml}</div></div>`;
+}
+
 function renderAll(){
   renderStepGrid();
   renderBaselineTypeButtons();
@@ -771,6 +876,21 @@ function renderAll(){
 
 // ---- events ----
 document.getElementById('baselineBar').onclick = toggleBaseline;
+document.getElementById('shareBar').onclick = toggleShare;
+document.getElementById('copyLinkBtn').onclick = () => {
+  const url = document.getElementById('shareUrl').textContent.trim();
+  const btn = document.getElementById('copyLinkBtn');
+  const reset = () => { btn.textContent = '📋 Copy link'; };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = '✓ Copied!';
+      setTimeout(reset, 1600);
+    }).catch(() => { btn.textContent = 'Could not copy — long-press the link above'; setTimeout(reset, 2200); });
+  } else {
+    btn.textContent = 'Long-press the link above to copy';
+    setTimeout(reset, 2200);
+  }
+};
 document.getElementById('stepTrigger').addEventListener('click', (e) => {
   e.stopPropagation();
   document.getElementById('stepDD').classList.toggle('open');
