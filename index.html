@@ -709,8 +709,28 @@ function renderLog(){
   view.scrollTop = 0;
 }
 
+// Gate the Set/Update Baseline buttons. Enable when EITHER a genuine premium is
+// detected (auto-advance) OR a valid win count is typed (manual set/correct).
+// Runs independently of renderPredict's early-return so it works with no baseline yet.
+function updateSetBaselineButtons(){
+  let hit = false;
+  if(state.startWin !== null){
+    hit = findStep(computeSeries()).hit;
+  }
+  const typedWin = parseInt((document.getElementById('startWin')||{}).value, 10);
+  const hasTypedWin = !isNaN(typedWin) && typedWin > 0;
+  const canSet = hit || hasTypedWin;
+  [['setBaseline','setBaselineHint'], ['setBaselineBottom','setBaselineBottomHint']].forEach(([btnId, hintId]) => {
+    const btn = document.getElementById(btnId);
+    const hint = document.getElementById(hintId);
+    if(btn){ btn.disabled = !canSet; }
+    if(hint){ hint.classList.toggle('hidden', !!canSet); }
+  });
+}
+
 function renderPredict(){
   const box = document.getElementById('predictBox');
+  updateSetBaselineButtons();
   if(state.startWin === null){
     box.className = 'predict';
     box.innerHTML = 'Set a baseline and start logging to see predictions.';
@@ -723,15 +743,6 @@ function renderPredict(){
   const transition = step ? STEP_TRANSITIONS[step-1] : null;
   const tip = step ? STEP_TIPS[step-1] : null;
   const stepIcon = transition ? iconHtml(transition.to, true) : `<span class="icon icon-lg icon-unknown">?</span>`;
-
-  // Set/Update Baseline only makes sense once a Platinum or Legendary has
-  // actually been logged — gate both buttons on that.
-  [['setBaseline','setBaselineHint'], ['setBaselineBottom','setBaselineBottomHint']].forEach(([btnId, hintId]) => {
-    const btn = document.getElementById(btnId);
-    const hint = document.getElementById(hintId);
-    if(btn){ btn.disabled = !hit; }
-    if(hint){ hint.classList.toggle('hidden', !!hit); }
-  });
 
   let html = `<div class="predict-top">${stepIcon}<div class="txt">`;
   html += `<div class="step-name">${step ? STEP_LABELS[step-1] + ' — predicted ' + (transition.to==='p'?'Platinum':'Legendary') : 'No step selected'}</div>`;
@@ -950,6 +961,9 @@ function collapseBaseline(){
 }
 document.getElementById('setBaseline').onclick = handleSetBaseline;
 document.getElementById('setBaselineBottom').onclick = handleSetBaseline;
+
+// Enable/disable the Set button live as the user types a win count.
+document.getElementById('startWin').addEventListener('input', updateSetBaselineButtons);
 
 document.querySelectorAll('.crate-btn').forEach(btn => {
   btn.onclick = () => {

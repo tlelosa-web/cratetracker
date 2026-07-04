@@ -1,6 +1,6 @@
 // CrateTracker service worker — offline-first, cache-first app shell.
 // Bump CACHE_VERSION whenever index.html or icons change to force an update.
-const CACHE_VERSION = 'cratetracker-v4';
+const CACHE_VERSION = 'cratetracker-v5';
 const APP_SHELL = [
   './',
   './index.html',
