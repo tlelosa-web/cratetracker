@@ -322,6 +322,12 @@
     color:#4c517a; font-size:9.5px; text-align:center; margin-top:10px; line-height:1.45; font-weight:600;
     padding:0 8px;
   }
+
+  /* full-screen overlay for the premium-crate confetti burst (no libraries) */
+  #confettiCanvas{
+    position:fixed; inset:0; width:100vw; height:100vh;
+    pointer-events:none; z-index:9999;
+  }
 </style>
 </head>
 <body>
@@ -469,16 +475,18 @@ const STEP_TIPS = [
 // Race-count distance from start-of-step to the expected premium (ported from J31:J38, RC column only)
 const STEP_RC = [14,26,21,40,32,48,27,32];
 // Current -> predicted premium type per step, matched exactly to the in-game milestone screenshot
-// (not a strict alternation — steps 6 and 7 both start from Platinum in the real data)
+// (not a strict alternation — Step 6 is Plat→Plat and Step 8 is Leg→Leg in the real data,
+// which also matches the step-routing in findStep: Step 6 exits on a Platinum @47-51 and
+// Step 8 exits on a Legendary @31-33.)
 const STEP_TRANSITIONS = [
   {from:'l', to:'p'}, // Step 1
   {from:'p', to:'l'}, // Step 2
   {from:'l', to:'p'}, // Step 3
   {from:'p', to:'l'}, // Step 4
   {from:'l', to:'p'}, // Step 5
-  {from:'p', to:'l'}, // Step 6
+  {from:'p', to:'p'}, // Step 6
   {from:'p', to:'l'}, // Step 7
-  {from:'l', to:'p'}  // Step 8
+  {from:'l', to:'l'}  // Step 8
 ];
 
 const STORE_KEY = 'f1clash_crate_tracker_v2';
@@ -490,7 +498,7 @@ const STORE_KEY = 'f1clash_crate_tracker_v2';
 // premium (Platinum/Legendary per STEP_TRANSITIONS).
 const STEP_GOLDS = [
   [5,8],                              // Step 1  (premium @14)
-  [2,7,10,14,19],                     // Step 2  (premium @26)
+  [2,7,10,14,19,21],                  // Step 2  (premium @26)
   [5,8,12,16],                        // Step 3  (premium @21)
   [3,7,12,14,19,24,27,32,35],         // Step 4  (premium @40)
   [3,12,14,19,24,27],                 // Step 5  (premium @32)
@@ -792,11 +800,11 @@ function renderPredict(){
     if(nextLabel){
       const premiumHint = (nextCrate === 'premium')
         ? ` 🎉`
-        : ` · ${premiumName} premium around race ${target}${distance>0?` (${distance} to go)`:''}`;
+        : ` · ${premiumName} crate around race ${target}${distance>0?` (${distance} to go)`:''}`;
       html += `<span>Next up: <strong>race ${nextRaceNum}</strong> → <strong>${nextLabel}</strong>${premiumHint}</span>`;
     } else {
       // step not yet mapped: fall back to premium-distance messaging
-      html += `<span>Next up: <strong>race ${nextRaceNum}</strong> · ${premiumName} premium around race ${target}${distance>0?` (${distance} to go)`:''}</span>`;
+      html += `<span>Next up: <strong>race ${nextRaceNum}</strong> · ${premiumName} crate around race ${target}${distance>0?` (${distance} to go)`:''}</span>`;
     }
     html += `</div>`;
 
@@ -971,15 +979,85 @@ document.getElementById('setBaselineBottom').onclick = handleSetBaseline;
 // Enable/disable the Set button live as the user types a win count.
 document.getElementById('startWin').addEventListener('input', updateSetBaselineButtons);
 
+// ---- premium-crate confetti (self-contained canvas burst, no libraries, offline-safe) ----
+// Two palettes: silver/blue for Platinum, gold for Legendary. Honours
+// prefers-reduced-motion by skipping the animation entirely.
+const CONFETTI_PALETTES = {
+  p: ['#eaf7ff','#cfeafc','#5aa9d6','#ffffff','#8fd0f0'],
+  l: ['#e8c04a','#f5b400','#ffe07a','#b87f00','#fff3c4']
+};
+let confettiRAF = null;
+function fireConfetti(type){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = CONFETTI_PALETTES[type] || CONFETTI_PALETTES.p;
+  let canvas = document.getElementById('confettiCanvas');
+  if(!canvas){
+    canvas = document.createElement('canvas');
+    canvas.id = 'confettiCanvas';
+    document.body.appendChild(canvas);
+  }
+  const dpr = window.devicePixelRatio || 1;
+  const W = window.innerWidth, H = window.innerHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const parts = [];
+  for(let i = 0; i < 90; i++){
+    parts.push({
+      x: W/2 + (Math.random()-0.5) * W * 0.35,
+      y: H * 0.36 + (Math.random()-0.5) * 40,
+      vx: (Math.random()-0.5) * 9,
+      vy: Math.random() * -9 - 4,
+      g: 0.22 + Math.random() * 0.12,
+      size: 5 + Math.random() * 6,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random()-0.5) * 0.3,
+      color: colors[(Math.random() * colors.length) | 0],
+      life: 0,
+      ttl: 90 + Math.random() * 40
+    });
+  }
+
+  if(confettiRAF) cancelAnimationFrame(confettiRAF);
+  function frame(){
+    ctx.clearRect(0, 0, W, H);
+    let alive = false;
+    for(const p of parts){
+      if(p.life > p.ttl) continue;
+      alive = true;
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p.life / p.ttl);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+      ctx.restore();
+    }
+    if(alive){ confettiRAF = requestAnimationFrame(frame); }
+    else { ctx.clearRect(0, 0, W, H); confettiRAF = null; }
+  }
+  frame();
+}
+
 document.querySelectorAll('.crate-btn').forEach(btn => {
   btn.onclick = () => {
     if(state.startWin === null){
       alert('Set your baseline win count first.');
       return;
     }
-    state.entries.push(btn.dataset.c);
+    const c = btn.dataset.c;
+    state.entries.push(c);
     saveState();
     renderAll();
+    // celebrate a recorded premium crate — Platinum or Legendary
+    if(c === 'p' || c === 'l') fireConfetti(c);
   };
 });
 
